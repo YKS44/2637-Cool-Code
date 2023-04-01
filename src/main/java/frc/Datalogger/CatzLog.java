@@ -45,7 +45,6 @@ public class CatzLog
         robotData15 = data15;
     }
   
-
     public String toString()
     {
     

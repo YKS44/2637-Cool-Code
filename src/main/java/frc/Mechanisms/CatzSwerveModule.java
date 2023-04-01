@@ -15,7 +15,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-
+@SuppressWarnings("unused")
 public class CatzSwerveModule
 {
     private final CANSparkMax STEER_MOTOR;
@@ -46,7 +46,7 @@ public class CatzSwerveModule
 
     private boolean dead = false;
 
-    private  Timer faultTimer;
+    private Timer faultTimer; // for enc fault detect?
 
     //current limiting
     private SupplyCurrentLimitConfiguration swerveModuleCurrentLimit;

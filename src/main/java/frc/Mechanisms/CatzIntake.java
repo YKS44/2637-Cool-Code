@@ -10,10 +10,12 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.ControllerInput.ControllerMapManager;
 import frc.ControllerInput.Actions.TriggerAction;
-import frc.Mechanisms.IPos.ElbowPosID;
-import frc.Mechanisms.IPos.General;
-import frc.Mechanisms.IPos.IntakePosID;
-import frc.Mechanisms.IPos.WristPosID;
+import frc.Datalogger.CatzLog;
+import frc.Datalogger.DataCollection.logID;
+import frc.Utils.IPos;
+import frc.Utils.PositionControlledMotor;
+import frc.Utils.IPos.General;
+import frc.Utils.IPos.IntakePosID;
 import frc.robot.Robot;
 
 @SuppressWarnings("unused")
@@ -23,26 +25,46 @@ public class CatzIntake extends AbstractMechanism {
     private final int           CURRENT_LIMIT_AMPS            = 55;
     private final int           CURRENT_LIMIT_TRIGGER_AMPS    = 55;
     private final double        CURRENT_LIMIT_TIMEOUT_SECONDS = 0.5;
-    private final int           THREAD_PERIOD_MS              = 100;
+    private final int           THREAD_PERIOD_MS              = 20;
     private final boolean       ENABLE_CURRENT_LIMIT          = true;
-    private static final int    INTAKE_THREAD_PERIOD_MS       = 20;
+
+    public static double MAX_SPEED         = 1.0; // dummy
+    public static double DECEL             = 1.0; // dummy
+    public static double kP                = 0.05; // dummy
+    public static double kV                = 0.05; // dummy
+    public static double MANUAL_EXT_POWER  = 0.5;
+    public static double DEADBAND_RADIUS   = 2.0;
+    public static double UNIT_TO_ENC       = 1.0; // dummy
+    public static int    THREAD_PERIOD     = 20;
+    
+    public static int WRIST_CAN_ID = 0; // dummy
+    public static logID MECH_ID = logID.INTAKE;
+    public PositionControlledMotor wrist;
 
     private final int ROLLER_MOTOR_CAN_ID = 0;
 
+    private CatzLog data;
+
     public volatile IntakePosID targetPos = IntakePosID.STW;
     public IPos currentPos                = General.NULL;
-
-    public CatzIntakeElbow elbow;
-    public CatzIntakeWrist wrist;
 
     private WPI_TalonFX rollerMotor;
     private SupplyCurrentLimitConfiguration rollerMotorCurrentLimit;
 
     public CatzIntake(){
-        super(INTAKE_THREAD_PERIOD_MS);
+        super(THREAD_PERIOD, MECH_ID);
 
-        elbow = new CatzIntakeElbow();
-        wrist = new CatzIntakeWrist();
+        wrist = new PositionControlledMotor(
+            "wrist",
+            WRIST_CAN_ID, 
+            DEADBAND_RADIUS,
+            MAX_SPEED, 
+            DECEL, 
+            kP,
+            kV, 
+            UNIT_TO_ENC,
+            IntakePosID.STW
+        );
 
         rollerMotorCurrentLimit = new SupplyCurrentLimitConfiguration(ENABLE_CURRENT_LIMIT, CURRENT_LIMIT_AMPS, CURRENT_LIMIT_TRIGGER_AMPS, CURRENT_LIMIT_TIMEOUT_SECONDS);
 
@@ -52,28 +74,14 @@ public class CatzIntake extends AbstractMechanism {
 
         rollerMotor.setSelectedSensorPosition(0.0);
         rollerMotor.setNeutralMode(NeutralMode.Brake);
-
-        start();
     }
     
     public void setPos(IntakePosID posId){
-        targetPos = posId;
-        elbow.setPos(targetPos.elbowPosID);
-        wrist.setPos(targetPos.wristPosID);
+        wrist.motorSetPos(posId);
     }
     
     public void runRollers(double power){
         rollerMotor.set(ControlMode.PercentOutput, power);
-    }
-    
-    @Override
-    public void update(){
-        if(elbow.motor.getCurrentPos() != General.NULL && wrist.motor.getCurrentPos() != General.NULL){
-            currentPos = targetPos;
-        }
-        else{
-            currentPos = General.NULL;
-        }
     }
 
     public static CatzIntake getInstance()
@@ -87,137 +95,29 @@ public class CatzIntake extends AbstractMechanism {
     }
 
     @Override
+    public void collectData(){
+        data = wrist.collectMotorData();
+        data.robotData8 = rollerMotor.getSelectedSensorVelocity();
+
+        Robot.dataCollection.logData.add(data);
+    }
+    
+    @Override
+    public void update(){}
+
+    @Override
     public void smartDashboard(){
-        SmartDashboard.putString("Intake Current Position", currentPos.getName());
+        SmartDashboard.putNumber("Intake Roller Velocity", rollerMotor.getSelectedSensorVelocity());
+        wrist.updateMotorSmartDashboard();
     }
     
     @Override
     public void smartDashboard_DEBUG(){
-        SmartDashboard.putString("Intake Target Position", targetPos.name);
+        wrist.updateMotorSmartDashboard_DEBUG();
     }
 
     @Override
     public void registerDriveAction() {
         ControllerMapManager.getInstance().addControllerAction(new TriggerAction(()->{return Robot.xbox.getAButtonPressed();}, ()->setPos(IntakePosID.POS1)));        
-    }
-
-    private class CatzIntakeElbow extends AbstractMechanism{ 
-        private final double MAX_POWER         = 1.0;
-        private final double MIN_POWER         = 0.05;
-        private final double DECEL_DIST        = 20;
-        private final double MANUAL_EXT_POWER  = 0.5;
-        private final double DEADBAND_RADIUS   = 2.0;
-        private final double UNIT_TO_ENC       = 1.0; // duprivate
-        private final int ELBOW_CAN_ID = 0; // dummy
-
-        private PositionControlledMotor motor;
-
-        public CatzIntakeElbow(){
-            super(THREAD_PERIOD_MS);
-
-            motor = new PositionControlledMotor(
-                ELBOW_CAN_ID, 
-                MAX_POWER, 
-                MIN_POWER, 
-                DECEL_DIST, 
-                DEADBAND_RADIUS, 
-                UNIT_TO_ENC,
-                ElbowPosID.STW
-            );
-
-            start();
-        }
-
-        public void setPos(ElbowPosID pos){
-            motor.motorSetPos(pos);
-        }
-
-        public void setMotorManual(double direction){
-            motor.motorManual(direction);
-        }
-
-        @Override
-        public void update(){
-            motor.updateMotor();
-        }
-        
-        @Override
-        public void smartDashboard(){
-            SmartDashboard.putString("Elbow Current Position", motor.getCurrentPos().getName());
-        }
-
-        @Override
-        public void smartDashboard_DEBUG(){
-            SmartDashboard.putString("Elbow Target Position", motor.getTargetPos().getName());
-            SmartDashboard.putNumber("Elbow Encoder Position", motor.currentPosEnc);
-            SmartDashboard.putNumber("Elbow Target Power", motor.targetPower);
-            SmartDashboard.putNumber("Elbow Distance Remaining", motor.distanceRemaining);
-        }
-
-        @Override
-        public void registerDriveAction() {
-            // TODO Auto-generated method stub
-            
-        }
-    }
-
-    private class CatzIntakeWrist extends AbstractMechanism{ 
-        private final double MAX_POWER         = 1.0;
-        private final double MIN_POWER         = 0.05;
-        private final double DECEL_DIST        = 20;
-        private final double MANUAL_EXT_POWER  = 0.5;
-        private final double DEADBAND_RADIUS   = 2.0;
-        private final double UNIT_TO_ENC       = 1.0; // dummy
-        
-        private final int WRIST_CAN_ID = 0; // dummy
-        private PositionControlledMotor motor;
-
-        public CatzIntakeWrist(){
-            super(THREAD_PERIOD_MS);
-
-            motor = new PositionControlledMotor(
-                WRIST_CAN_ID, 
-                MAX_POWER, 
-                MIN_POWER, 
-                DECEL_DIST, 
-                DEADBAND_RADIUS, 
-                UNIT_TO_ENC,
-                WristPosID.STW
-            );
-
-            start();
-        }
-
-        public void setPos(WristPosID pos){
-            motor.motorSetPos(pos);
-        }
-
-        public void setMotorManual(double direction){
-            motor.motorManual(direction);
-        }
-
-        @Override
-        public void smartDashboard(){
-            SmartDashboard.putString("Wrist Current Position", motor.getCurrentPos().getName());
-        }
-        
-        @Override
-        public void smartDashboard_DEBUG(){
-            SmartDashboard.putString("Wrist Target Position", motor.getTargetPos().getName());
-            SmartDashboard.putNumber("Wrist Encoder Position", motor.currentPosEnc);
-            SmartDashboard.putNumber("Wrist Target Power", motor.targetPower);
-            SmartDashboard.putNumber("Wrist Distance Remaining", motor.distanceRemaining);
-        }
-        
-        @Override
-        public void update(){
-            motor.updateMotor();
-        }
-
-        @Override
-        public void registerDriveAction() {
-            // TODO Auto-generated method stub
-            
-        }
     }
 }

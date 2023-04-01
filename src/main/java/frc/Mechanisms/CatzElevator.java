@@ -8,41 +8,46 @@ import com.fasterxml.jackson.databind.ser.std.StdArraySerializers.IntArraySerial
 import edu.wpi.first.wpilibj.DigitalInput;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.Mechanisms.IPos.ElevatorPosID;
+import frc.Datalogger.DataCollection.logID;
 import frc.Utils.CatzMathUtils;
+import frc.Utils.PositionControlledMotor;
+import frc.Utils.IPos.ElevatorPosID;
+import frc.robot.Robot;
 
 @SuppressWarnings("unused")
 public class CatzElevator extends AbstractMechanism{ 
     private static CatzElevator instance = null;
 
-    public static double MAX_POWER         = 1.0;
-    public static double MIN_POWER         = 0.05;
-    public static double DECEL_DIST        = 20;
+    public static double MAX_SPEED         = 1.0; // dummy
+    public static double DECEL             = 1.0; // dummy
+    public static double kP                = 0.05; // dummy
+    public static double kV                = 0.05; // dummy
     public static double MANUAL_EXT_POWER  = 0.5;
     public static double DEADBAND_RADIUS   = 2.0;
     public static double UNIT_TO_ENC       = 1.0; // dummy
-    public static int    THREAD_PERIOD     = 100;
+    public static int    THREAD_PERIOD     = 20;
     
     private final int MID_LIMIT_SWITCH_CHANNEL = 1;
     public static int ELEVATOR_CAN_ID = 0; // dummy
+    public static logID MECH_ID = logID.ELEVATOR;
 
     public PositionControlledMotor motor;
     private DigitalInput midLimitSwitch;
 
     public CatzElevator(){
-        super(THREAD_PERIOD);
+        super(THREAD_PERIOD, MECH_ID);
 
         motor = new PositionControlledMotor(
+            "Elevator",
             ELEVATOR_CAN_ID, 
-            MAX_POWER, 
-            MIN_POWER, 
-            DECEL_DIST, 
-            DEADBAND_RADIUS, 
+            DEADBAND_RADIUS,
+            MAX_SPEED, 
+            DECEL, 
+            kP,
+            kV, 
             UNIT_TO_ENC,
             ElevatorPosID.STW
         );
-
-        start();
     }
 
     public void setPos(ElevatorPosID pos){
@@ -51,15 +56,6 @@ public class CatzElevator extends AbstractMechanism{
 
     public void setMotorManual(double direction){
         motor.motorManual(direction);
-    }
-
-    @Override
-    public void update(){
-        motor.updateMotor();
-        
-        if(midLimitSwitch.get() && motor.getTargetPos() == ElevatorPosID.MID){
-            motor.motorManual(0.0);
-        }
     }
 
     public static CatzElevator getInstance()
@@ -73,21 +69,31 @@ public class CatzElevator extends AbstractMechanism{
     }
 
     @Override
+    public void collectData(){
+        Robot.dataCollection.logData.add(motor.collectMotorData());
+    }
+
+    @Override
+    public void update(){
+        motor.updateMotor();
+        
+        if(midLimitSwitch.get() && motor.finalPos == ElevatorPosID.MID){
+            motor.motorManual(0.0);
+        }
+    }
+
+    @Override
     public void smartDashboard(){
-        SmartDashboard.putString("Elevator Current Position", motor.getCurrentPos().getName());
+        motor.updateMotorSmartDashboard();
     }
     
     @Override
     public void smartDashboard_DEBUG(){
-        SmartDashboard.putString("Elevator Target Position", motor.getTargetPos().getName());
-        SmartDashboard.putNumber("Elevator Encoder Position", motor.currentPosEnc);
-        SmartDashboard.putNumber("Elevator Target Power", motor.targetPower);
-        SmartDashboard.putNumber("Elevator Distance Remaining", motor.distanceRemaining);
+        motor.updateMotorSmartDashboard_DEBUG();
     }
 
     @Override
     public void registerDriveAction() {
-        // TODO Auto-generated method stub
-        
+        //register drive action
     }
 }

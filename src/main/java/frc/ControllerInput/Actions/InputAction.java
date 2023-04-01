@@ -18,5 +18,4 @@ public class InputAction extends Action{
     public void run() {
         inputController.accept(Robot.xbox);
     }
-    
 }

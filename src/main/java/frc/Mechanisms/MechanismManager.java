@@ -15,6 +15,18 @@ public class MechanismManager {
         allMechanisms = Arrays.asList(mechanisms);
     }
 
+    public AbstractMechanism[] getAllMechanisms(){
+        return (AbstractMechanism[]) allMechanisms.toArray();
+    }
+
+    public void stopMechanisms(AbstractMechanism... mechanisms){
+        Arrays.asList(mechanisms).forEach(AbstractMechanism::kill);
+    }
+
+    public void startMechanisms(AbstractMechanism... mechanisms){
+        Arrays.asList(mechanisms).forEach(AbstractMechanism::start);
+    }
+
     public void registerDriverActions()
     {
         allMechanisms.forEach(AbstractMechanism::registerDriveAction);

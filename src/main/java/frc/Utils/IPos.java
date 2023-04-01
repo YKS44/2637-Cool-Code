@@ -1,5 +1,4 @@
-package frc.Mechanisms;
-
+package frc.Utils;
 
 public interface IPos{
     String getName();
@@ -61,72 +60,18 @@ public interface IPos{
         }
     }
 
-    public enum WristPosID implements IPos
-    {
-        //dummy angle values
-        STW(0.0, "stow"),
-        POS1(1.0, "dummy position 1"),
-        POS2(2.0, "dummy position 2"),
-        POS3(3.0, "dummy position 3");
-        
-        public final double pos;
-        public final String name;
-        private WristPosID(double pos, String name){
-            this.pos = pos;
-            this.name = name;
-        }
-
-        @Override
-        public String getName(){
-            return name;
-        }
-
-        @Override
-        public double getPos(){
-            return pos;
-        }
-    }
-
-    public enum ElbowPosID implements IPos
-    {
-        //dummy angle values
-        STW(0.0, "stow"),
-        POS1(1.0, "dummy position 1"),
-        POS2(2.0, "dummy position 2"),
-        POS3(3.0, "dummy position 3");
-        
-        public final double pos;
-        public final String name;
-        private ElbowPosID(double pos, String name){
-            this.pos = pos;
-            this.name = name;
-        }
-
-        @Override
-        public String getName(){
-            return name;
-        }
-
-        @Override
-        public double getPos(){
-            return pos;
-        }
-    }
-
     public enum IntakePosID implements IPos
     {
-        //dummy pivot ids
-        STW(ElbowPosID.STW, WristPosID.STW, "stow"),
-        POS1(ElbowPosID.POS1, WristPosID.POS1, "dummy position 1"),
-        POS2(ElbowPosID.POS2, WristPosID.POS2, "dummy position 2"),
-        POS3(ElbowPosID.POS3, WristPosID.POS3, "dummy position 3");
+        //dummy
+        STW(0.0, "stow"),
+        POS1(1.0, "dummy position 1"),
+        POS2(2.0, "dummy position 2"),
+        POS3(3.0, "dummy position 3");
         
-        public final ElbowPosID elbowPosID;
-        public final WristPosID wristPosID;
+        public final double pos;
         public final String name;
-        private IntakePosID(ElbowPosID elbowPosID, WristPosID wristPosID, String name){
-            this.elbowPosID = elbowPosID;
-            this.wristPosID = wristPosID;
+        private IntakePosID(double pos, String name){
+            this.pos = pos;
             this.name = name;
         }
 

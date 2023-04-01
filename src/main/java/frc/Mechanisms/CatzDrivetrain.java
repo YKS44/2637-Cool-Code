@@ -3,10 +3,16 @@ package frc.Mechanisms;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.ControllerInput.ControllerMapManager;
 import frc.ControllerInput.Actions.InputAction;
+import frc.Datalogger.CatzLog;
+import frc.Datalogger.DataCollection;
+import frc.Datalogger.DataCollection.logID;
 import frc.robot.Robot;
 
+@SuppressWarnings("unused")
 public class CatzDrivetrain extends AbstractMechanism
 {
+    private static CatzDrivetrain instance = null;
+
     public final CatzSwerveModule RT_FRNT_MODULE;
     public final CatzSwerveModule RT_BACK_MODULE;
     public final CatzSwerveModule LT_FRNT_MODULE;
@@ -33,23 +39,22 @@ public class CatzDrivetrain extends AbstractMechanism
     private final double RT_FRNT_OFFSET =  0.8482;
 
     private final double NOT_FIELD_RELATIVE = 0.0;
+    private final static int THREAD_PERIOD_MS = 20;
 
     private double steerAngle = 0.0;
     private double drivePower = 0.0;
     private double turnPower  = 0.0;
     private double gyroAngle  = 0.0;
     
-    //Data collection
-    // public CatzLog data;
+    public CatzLog data;
 
     public double dataJoystickAngle;
     public double dataJoystickPower;
     private double front;
 
-
     public CatzDrivetrain()
     {
-        super(0);
+        super(THREAD_PERIOD_MS, logID.SWERVE);
         LT_FRNT_MODULE = new CatzSwerveModule(LT_FRNT_DRIVE_ID, LT_FRNT_STEER_ID, LT_FRNT_ENC_PORT, LT_FRNT_OFFSET);
         LT_BACK_MODULE = new CatzSwerveModule(LT_BACK_DRIVE_ID, LT_BACK_STEER_ID, LT_BACK_ENC_PORT, LT_BACK_OFFSET);
         RT_FRNT_MODULE = new CatzSwerveModule(RT_FRNT_DRIVE_ID, RT_FRNT_STEER_ID, RT_FRNT_ENC_PORT, RT_FRNT_OFFSET);
@@ -182,8 +187,6 @@ public class CatzDrivetrain extends AbstractMechanism
         RT_BACK_MODULE.setDrivePower(translatePower);
     }
 
-
-
     public double closestAngle(double startAngle, double targetAngle)
     {
         // get direction
@@ -202,28 +205,6 @@ public class CatzDrivetrain extends AbstractMechanism
 
         return error;
     }
-
-    // public void dataCollection()
-    // {
-    //     if(DataCollection.chosenDataID.getSelected() == DataCollection.LOG_ID_SWERVE_STEERING)
-    //     {
-    //         data = new CatzLog(Robot.currentTime.get(), dataJoystickAngle,
-    //                         LT_FRNT_MODULE.getAngle(), LT_FRNT_MODULE.getError(), LT_FRNT_MODULE.getFlipError(),
-    //                         LT_BACK_MODULE.getAngle(), LT_BACK_MODULE.getError(), LT_BACK_MODULE.getFlipError(),
-    //                         RT_FRNT_MODULE.getAngle(), RT_FRNT_MODULE.getError(), RT_FRNT_MODULE.getFlipError(),
-    //                         RT_BACK_MODULE.getAngle(), RT_BACK_MODULE.getError(), RT_BACK_MODULE.getFlipError(), front, DataCollection.boolData);  
-    //         Robot.dataCollection.logData.add(data);
-    //     }
-    //     else if(DataCollection.chosenDataID.getSelected() == DataCollection.LOG_ID_SWERVE_DRIVING)
-    //     {
-    //         data = new CatzLog(Robot.currentTime.get(), dataJoystickAngle,
-    //                         LT_FRNT_MODULE.getAngle(), LT_FRNT_MODULE.getDrvDistanceRaw(), LT_FRNT_MODULE.getDrvVelocity(),
-    //                         LT_BACK_MODULE.getAngle(), LT_BACK_MODULE.getDrvDistanceRaw(), LT_BACK_MODULE.getDrvVelocity(),
-    //                         RT_FRNT_MODULE.getAngle(), RT_FRNT_MODULE.getDrvDistanceRaw(), RT_FRNT_MODULE.getDrvVelocity(),
-    //                         RT_BACK_MODULE.getAngle(), RT_BACK_MODULE.getDrvDistanceRaw(), RT_BACK_MODULE.getDrvVelocity(), LT_FRNT_MODULE.getError(), DataCollection.boolData);  
-    //         Robot.dataCollection.logData.add(data);
-    //     }
-    // }
 
     public void setSteerPower(double pwr)
     {
@@ -256,26 +237,6 @@ public class CatzDrivetrain extends AbstractMechanism
         RT_BACK_MODULE.setCoastMode();
     }
 
-    
-    public void smartDashboardDriveTrain()
-    {
-        LT_FRNT_MODULE.smartDashboardModules();
-        LT_BACK_MODULE.smartDashboardModules();
-        RT_FRNT_MODULE.smartDashboardModules();
-        RT_BACK_MODULE.smartDashboardModules();
-    }
-    
-
-    public void smartDashboardDriveTrain_DEBUG()
-    {
-        LT_FRNT_MODULE.smartDashboardModules_DEBUG();
-        LT_BACK_MODULE.smartDashboardModules_DEBUG();
-        RT_FRNT_MODULE.smartDashboardModules_DEBUG();
-        RT_BACK_MODULE.smartDashboardModules_DEBUG();
-        SmartDashboard.putNumber("Joystick", steerAngle);
-    }
-
-
     public void zeroGyro()
     {
         Robot.navX.setAngleAdjustment(-Robot.navX.getYaw());
@@ -295,7 +256,6 @@ public class CatzDrivetrain extends AbstractMechanism
 
         setDrivePower(power);
     }
-
 
     public double calcJoystickAngle(double xJoy, double yJoy)
     {
@@ -340,22 +300,57 @@ public class CatzDrivetrain extends AbstractMechanism
         RT_BACK_MODULE.setWheelAngle(135.0, NOT_FIELD_RELATIVE);
     }
 
-    @Override
-    public void update() {
-        // TODO Auto-generated method stub
-        
+    public static CatzDrivetrain getInstance()
+    {
+        if(instance == null)
+        {
+            instance = new CatzDrivetrain();
+        }
+
+        return instance;
     }
 
     @Override
+    public void collectData()
+    {
+        if(Robot.dataCollection.chosenDataID.getSelected() == logID.SWERVE_STEERING)
+        {
+            data = new CatzLog(mechTime.get(), dataJoystickAngle,
+                            LT_FRNT_MODULE.getAngle(), LT_FRNT_MODULE.getError(), LT_FRNT_MODULE.getFlipError(),
+                            LT_BACK_MODULE.getAngle(), LT_BACK_MODULE.getError(), LT_BACK_MODULE.getFlipError(),
+                            RT_FRNT_MODULE.getAngle(), RT_FRNT_MODULE.getError(), RT_FRNT_MODULE.getFlipError(),
+                            RT_BACK_MODULE.getAngle(), RT_BACK_MODULE.getError(), RT_BACK_MODULE.getFlipError(), front, DataCollection.boolData);  
+            Robot.dataCollection.logData.add(data);
+        }
+        else if(Robot.dataCollection.chosenDataID.getSelected() == logID.SWERVE_DRIVING)
+        {
+            data = new CatzLog(mechTime.get(), dataJoystickAngle,
+                            LT_FRNT_MODULE.getAngle(), LT_FRNT_MODULE.getDrvDistanceRaw(), LT_FRNT_MODULE.getDrvVelocity(),
+                            LT_BACK_MODULE.getAngle(), LT_BACK_MODULE.getDrvDistanceRaw(), LT_BACK_MODULE.getDrvVelocity(),
+                            RT_FRNT_MODULE.getAngle(), RT_FRNT_MODULE.getDrvDistanceRaw(), RT_FRNT_MODULE.getDrvVelocity(),
+                            RT_BACK_MODULE.getAngle(), RT_BACK_MODULE.getDrvDistanceRaw(), RT_BACK_MODULE.getDrvVelocity(), LT_FRNT_MODULE.getError(), DataCollection.boolData);  
+            Robot.dataCollection.logData.add(data);
+        }
+    }
+
+    @Override
+    public void update() {}
+
+    @Override
     public void smartDashboard() {
-        // TODO Auto-generated method stub
-        
+        LT_FRNT_MODULE.smartDashboardModules();
+        LT_BACK_MODULE.smartDashboardModules();
+        RT_FRNT_MODULE.smartDashboardModules();
+        RT_BACK_MODULE.smartDashboardModules();
     }
 
     @Override
     public void smartDashboard_DEBUG() {
-        // TODO Auto-generated method stub
-        
+        LT_FRNT_MODULE.smartDashboardModules_DEBUG();
+        LT_BACK_MODULE.smartDashboardModules_DEBUG();
+        RT_FRNT_MODULE.smartDashboardModules_DEBUG();
+        RT_BACK_MODULE.smartDashboardModules_DEBUG();
+        SmartDashboard.putNumber("Joystick", steerAngle);
     }
 
     @Override
@@ -363,6 +358,5 @@ public class CatzDrivetrain extends AbstractMechanism
         ControllerMapManager.getInstance().addControllerAction(new InputAction((xbox)->{
             cmdProcSwerve(xbox.getLeftX(), xbox.getLeftY(), xbox.getRightY(), Robot.navX.getAngle());
         }));
-        
     }
 }

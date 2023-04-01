@@ -8,38 +8,45 @@ import com.fasterxml.jackson.databind.ser.std.StdArraySerializers.IntArraySerial
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import java.util.concurrent.locks.ReentrantLock;
 
-import frc.Mechanisms.IPos.ArmPosID;
+import frc.Datalogger.CatzLog;
+import frc.Datalogger.DataCollection;
+import frc.Datalogger.DataCollection.logID;
 import frc.Utils.CatzMathUtils;
+import frc.Utils.PositionControlledMotor;
+import frc.Utils.IPos.ArmPosID;
+import frc.robot.Robot;
 
 @SuppressWarnings("unused")
 public class CatzArm extends AbstractMechanism{ 
     private static CatzArm instance = null;
 
-    public static double MAX_POWER         = 1.0;
-    public static double MIN_POWER         = 0.05;
-    public static double DECEL_DIST        = 20;
+    public static double MAX_SPEED         = 1.0; // dummy
+    public static double DECEL             = 1.0; // dummy
+    public static double kP                = 0.05; // dummy
+    public static double kV                = 0.05; // dummy
     public static double MANUAL_EXT_POWER  = 0.5;
     public static double DEADBAND_RADIUS   = 2.0;
     public static double UNIT_TO_ENC       = 1.0; // dummy
-    public static int    THREAD_PERIOD     = 100;
+    public static int    THREAD_PERIOD     = 20;
     
     public static int ARM_CAN_ID = 0; // dummy
+    public static logID MECH_ID = logID.ARM;
     public PositionControlledMotor motor;
 
     public CatzArm(){
-        super(THREAD_PERIOD);
+        super(THREAD_PERIOD, MECH_ID);
 
         motor = new PositionControlledMotor(
+            "Arm",
             ARM_CAN_ID, 
-            MAX_POWER, 
-            MIN_POWER, 
-            DECEL_DIST, 
-            DEADBAND_RADIUS, 
+            DEADBAND_RADIUS,
+            MAX_SPEED, 
+            DECEL, 
+            kP,
+            kV, 
             UNIT_TO_ENC,
             ArmPosID.STW
         );
-
-        start();
     }
 
     public void setPos(ArmPosID pos){
@@ -48,17 +55,6 @@ public class CatzArm extends AbstractMechanism{
 
     public void setMotorManual(double direction){
         motor.motorManual(direction);
-    }
-
-    @Override
-    public void update(){
-        motor.updateMotor();
-    }
-
-    @Override
-    public void registerDriveAction()
-    {
-
     }
 
     public static CatzArm getInstance()
@@ -72,15 +68,28 @@ public class CatzArm extends AbstractMechanism{
     }
 
     @Override
+    public void collectData(){
+        Robot.dataCollection.logData.add(motor.collectMotorData());
+    }
+
+    @Override
+    public void update(){
+        motor.updateMotor();
+    }
+
+    @Override
+    public void registerDriveAction()
+    {
+        //register drive action
+    }
+
+    @Override
     public void smartDashboard(){
-        SmartDashboard.putString("Arm Current Position", motor.getCurrentPos().getName());
+        motor.updateMotorSmartDashboard();
     }
     
     @Override
     public void smartDashboard_DEBUG(){
-        SmartDashboard.putString("Arm Target Position", motor.getTargetPos().getName());
-        SmartDashboard.putNumber("Arm Encoder Position", motor.currentPosEnc);
-        SmartDashboard.putNumber("Arm Target Power", motor.targetPower);
-        SmartDashboard.putNumber("Arm Distance Remaining", motor.distanceRemaining);
+        motor.updateMotorSmartDashboard_DEBUG();
     }
 }
