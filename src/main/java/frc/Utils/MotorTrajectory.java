@@ -7,9 +7,13 @@ public class MotorTrajectory{
     private double accel;
     private double maxTime;
 
-    //positive distance, positive speed, negative acceleration
-    //or:
-    //negative distance, negative speed, positive acceleration
+    /**
+     * positive distance, positive speed, negative acceleration
+     * <p>
+     * or:
+     * <p>
+     * negative distance, negative speed, positive acceleration
+     */
 
     public MotorTrajectory(double initPos, double finalPos, double maxSpeed, double accel){
         double dist = finalPos - initPos;
@@ -21,7 +25,7 @@ public class MotorTrajectory{
             this.maxTime = decelInitTime - maxSpeed / accel;
         }
         else{
-            this.maxSpeed = Math.sqrt(- 2 * accel * dist) * Math.signum(maxSpeed);
+            this.maxSpeed = Math.sqrt(-2 * accel * dist) * Math.signum(maxSpeed);
             this.decelInitTime = 0.0;
             this.maxTime = - maxSpeed / accel;
         }

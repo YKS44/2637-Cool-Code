@@ -28,14 +28,15 @@ public class CatzIntake extends AbstractMechanism {
     private final int           THREAD_PERIOD_MS              = 20;
     private final boolean       ENABLE_CURRENT_LIMIT          = true;
 
-    public static double MAX_SPEED         = 1.0; // dummy
-    public static double DECEL             = 1.0; // dummy
-    public static double kP                = 0.05; // dummy
-    public static double kV                = 0.05; // dummy
-    public static double MANUAL_EXT_POWER  = 0.5;
-    public static double DEADBAND_RADIUS   = 2.0;
-    public static double UNIT_TO_ENC       = 1.0; // dummy
-    public static int    THREAD_PERIOD     = 20;
+    public final static double MAX_SPEED         = 1.0; // dummy
+    public final static double DECEL             = 1.0; // dummy
+    public final static double kP                = 0.05; // dummy
+    public final static double kV                = 0.05; // dummy
+    public final static double MANUAL_EXT_POWER  = 0.5;
+    public final static double DEADBAND_RADIUS   = 2.0;
+    public final static double UNIT_TO_ENC       = 1.0; // dummy
+
+    public final static int    THREAD_PERIOD     = 20;
     
     public static int WRIST_CAN_ID = 0; // dummy
     public static logID MECH_ID = logID.INTAKE;
@@ -97,7 +98,7 @@ public class CatzIntake extends AbstractMechanism {
     @Override
     public void collectData(){
         data = wrist.collectMotorData();
-        data.robotData8 = rollerMotor.getSelectedSensorVelocity();
+        // data.robotData8 = rollerMotor.getSelectedSensorVelocity();
 
         Robot.dataCollection.logData.add(data);
     }
@@ -118,6 +119,6 @@ public class CatzIntake extends AbstractMechanism {
 
     @Override
     public void registerDriveAction() {
-        ControllerMapManager.getInstance().addControllerAction(new TriggerAction(()->{return Robot.xbox.getAButtonPressed();}, ()->setPos(IntakePosID.POS1)));        
+        ControllerMapManager.getInstance().addControllerAction(new TriggerAction(Robot.xbox::getAButtonPressed, ()->setPos(IntakePosID.POS1)));        
     }
 }

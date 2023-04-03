@@ -96,7 +96,7 @@ public class PositionControlledMotor{
 
     public CatzLog collectMotorData(){
         return new CatzLog(
-            time, finalPos.getPos(), targetPower, currentPosEnc, posError, velError, targetPos, targetVel, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0
+            time, finalPos.getPos(), targetPower, currentPosEnc, posError, velError, targetPos, targetVel
         );
     }
 

@@ -45,8 +45,8 @@ public class Robot extends TimedRobot
 
     xbox = new XboxController(XBOX_PORT);
 
-    mechanismManager.setMechanisms(drivetrain, intake, arm, elevator);
-    mechanismManager.startMechanisms(mechanismManager.getAllMechanisms());
+    mechanismManager.setMechanisms();
+    mechanismManager.startMechanisms();
     mechanismManager.registerDriverActions();
   }
   
@@ -75,7 +75,7 @@ public class Robot extends TimedRobot
 
   @Override
   public void disabledInit(){
-    mechanismManager.stopMechanisms(mechanismManager.getAllMechanisms());
+    mechanismManager.stopMechanisms();
     drivetrain.setCoastMode();
     
     if(dataCollection.logDataValues == true)

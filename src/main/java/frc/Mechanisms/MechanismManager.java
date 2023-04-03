@@ -10,21 +10,27 @@ public class MechanismManager {
     private List<AbstractMechanism> allMechanisms = new ArrayList<>();
     private List<AbstractMechanism> debugMechanisms = new ArrayList<>();
 
+
+    /**
+     * 
+     * This method MUST be called before any others.
+     * 
+     */
     public void setMechanisms(AbstractMechanism... mechanisms)
     {
         allMechanisms = Arrays.asList(mechanisms);
     }
 
     public AbstractMechanism[] getAllMechanisms(){
-        return (AbstractMechanism[]) allMechanisms.toArray();
+        return allMechanisms.toArray(AbstractMechanism[]::new);
     }
 
-    public void stopMechanisms(AbstractMechanism... mechanisms){
-        Arrays.asList(mechanisms).forEach(AbstractMechanism::kill);
+    public void stopMechanisms(){
+        allMechanisms.forEach(AbstractMechanism::kill);
     }
 
-    public void startMechanisms(AbstractMechanism... mechanisms){
-        Arrays.asList(mechanisms).forEach(AbstractMechanism::start);
+    public void startMechanisms(){
+        allMechanisms.forEach(AbstractMechanism::start);
     }
 
     public void registerDriverActions()
