@@ -9,7 +9,7 @@ import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.Timer;
-import frc.ControllerInput.ControllerMapManager;
+import frc.ControllerInput.ControllerActionManager;
 import frc.Datalogger.CatzLog;
 import frc.Datalogger.DataCollection;
 import frc.Mechanisms.CatzArm;
@@ -25,7 +25,7 @@ public class Robot extends TimedRobot
   public static XboxController xbox;
 
   private MechanismManager mechanismManager = MechanismManager.getInstance();
-  private ControllerMapManager controllerMapManager = ControllerMapManager.getInstance();
+  private ControllerActionManager controllerMapManager = ControllerActionManager.getInstance();
 
   public static DataCollection   dataCollection   = DataCollection.getInstance();
   private       CatzIntake       intake           = CatzIntake.getInstance();

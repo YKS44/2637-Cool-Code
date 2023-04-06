@@ -5,8 +5,8 @@ import java.util.List;
 
 import frc.ControllerInput.Actions.Action;
 
-public class ControllerMapManager {
-    private static ControllerMapManager instance = null;
+public class ControllerActionManager {
+    private static ControllerActionManager instance = null;
 
     private List<Action> controllerActionList = new ArrayList<>();
 
@@ -22,18 +22,15 @@ public class ControllerMapManager {
     {
         synchronized(controllerActionList)
         {
-            for(Action action : controllerActionList)
-            {
-                action.run();
-            }
+            controllerActionList.forEach(Action::run);
         }
     }
 
-    public static ControllerMapManager getInstance()
+    public static ControllerActionManager getInstance()
     {
         if(instance == null)
         {
-            instance = new ControllerMapManager();
+            instance = new ControllerActionManager();
         }
 
         return instance;

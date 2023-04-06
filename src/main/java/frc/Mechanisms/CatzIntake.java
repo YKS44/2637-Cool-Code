@@ -8,7 +8,7 @@ import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.ControllerInput.ControllerMapManager;
+import frc.ControllerInput.ControllerActionManager;
 import frc.ControllerInput.Actions.TriggerAction;
 import frc.Datalogger.CatzLog;
 import frc.Datalogger.DataCollection.logID;
@@ -119,6 +119,6 @@ public class CatzIntake extends AbstractMechanism {
 
     @Override
     public void registerDriveAction() {
-        ControllerMapManager.getInstance().addControllerAction(new TriggerAction(Robot.xbox::getAButtonPressed, ()->setPos(IntakePosID.POS1)));        
+        ControllerActionManager.getInstance().addControllerAction(new TriggerAction(Robot.xbox::getAButtonPressed, ()->setPos(IntakePosID.POS1)));        
     }
 }

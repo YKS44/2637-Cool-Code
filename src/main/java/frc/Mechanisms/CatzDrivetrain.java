@@ -1,7 +1,7 @@
 package frc.Mechanisms;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.ControllerInput.ControllerMapManager;
+import frc.ControllerInput.ControllerActionManager;
 import frc.ControllerInput.Actions.InputAction;
 import frc.Datalogger.CatzLog;
 import frc.Datalogger.DataCollection;
@@ -355,7 +355,7 @@ public class CatzDrivetrain extends AbstractMechanism
 
     @Override
     public void registerDriveAction() {
-        ControllerMapManager.getInstance().addControllerAction(new InputAction((xbox)->{
+        ControllerActionManager.getInstance().addControllerAction(new InputAction((xbox)->{
             cmdProcSwerve(xbox.getLeftX(), xbox.getLeftY(), xbox.getRightY(), Robot.navX.getAngle());
         }));
     }
